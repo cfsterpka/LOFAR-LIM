@@ -1519,8 +1519,12 @@ def run_fitter(timeID, output_folder, pulse_input_folders, guess_timings, souces
     print()
 
     print("locations")
+    npsources = {}
     for source in current_sources:
         print(source.ID,':[', source.guess_XYZT[0], ',', source.guess_XYZT[1], ',', source.guess_XYZT[2], ',', source.guess_XYZT[3], '],')
+        npsources[source.ID] = [ source.guess_XYZT[0], source.guess_XYZT[1], source.guess_XYZT[2], source.guess_XYZT[3] ]
+
+    np.save("working_sources",npsources)
 
     print()
     print()
