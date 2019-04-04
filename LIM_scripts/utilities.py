@@ -12,9 +12,12 @@ import weakref
 from scipy import fftpack
 import numpy as np
 
+from LoLIM.definitions import definitions
+D = definitions()
+
 ## some global variables, this needs to be fixed at some point
-default_raw_data_loc = None#"/exp_app2/appexp1/public/raw_data"
-default_processed_data_loc = None#"/home/brian/processed_files"
+default_raw_data_loc = D.default_raw_data_loc
+default_processed_data_loc = D.default_processed_data_loc
 
 MetaData_directory =  dirname(abspath(__file__)) + '/data' ## change this if antenna_response_model is in a folder different from this module
 
@@ -32,84 +35,84 @@ class logger(object):
     class std_writer(object):
         def __init__(self, logger):
             self.logger_ref = weakref.ref(logger)
-            
+
         def write(self, msg):
             logger=self.logger_ref()
             logger.out_file.write(msg)
             if logger.to_screen:
                 logger.old_stdout.write(msg)
-            
+
         def flush(self):
             logger=self.logger_ref()
             logger.out_file.flush()
-    
-    
+
+
     def __init__(self):
-        
+
         self.has_stderr = False
         self.has_stdout = False
-        
+
         self.old_stderr = sys.stderr
         self.old_stdout = sys.stdout
-        
+
         self.set("out_log")
-        
+
     def set(self, fname, to_screen=True):
         self.out_file = open(fname, 'w')
-        
+
         self.set_to_screen( to_screen )
-        
-        
+
+
     def __call__(self, *args):
         for a in args:
             if self.to_screen:
                 self.old_stdout.write(str(a))
                 self.old_stdout.write(" ")
-                
+
             self.out_file.write(str(a))
             self.out_file.write(" ")
-            
+
         self.out_file.write("\n")
         if self.to_screen:
             self.old_stdout.write("\n")
-            
+
         self.out_file.flush()
         self.old_stdout.flush()
-        
+
     def set_to_screen(self, to_screen=True):
         self.to_screen = to_screen
-        
+
     def take_stdout(self):
-        
+
         if not self.has_stdout:
             sys.stdout = self.std_writer(self)
             self.has_stdout = True
-							
+
     def take_stderr(self):
-        
+
         if not self.has_stderr:
             sys.stderr = self.std_writer(self)
             self.has_stderr = True
-            
+
     def restore_stdout(self):
         if self.has_stdout:
             sys.stdout = self.old_stdout
             self.has_stdout = False
-            
+
     def restore_stderr(self):
         if self.has_stderr:
             sys.stderr = self.old_stderr
             self.has_stderr = False
-            
+
     def flush(self):
         self.out_file.flush()
-            
+
 #    def __del__(self):
 #        self.restore_stderr()
 #        self.restore_stdout()
-        
+
 #log = logger()
-        
+
 def iterate_pairs(list_one, list_two, list_one_avoid=[], list_two_avoid=[]):
     """returns an iterator that loops over all pairs of the two lists"""
     for item_one in list_one:
@@ -119,9 +122,9 @@ def iterate_pairs(list_one, list_two, list_one_avoid=[], list_two_avoid=[]):
             if item_two in list_two_avoid:
                 continue
             yield (item_one, item_two)
-        
-        
-        
+
+
+
 #### some file utils
 
 def Fname_data(Fpath):
@@ -130,12 +133,12 @@ def Fname_data(Fpath):
     data = Fname.split('_')
     timeID = data[1]
     station_name = data[2]
-    
+
     if len(data[3][1:])==0:
         file_number = 0
     else:
         file_number = int(data[3][1:])
-    
+
     return timeID, station_name, Fpath, file_number
 
 
@@ -151,26 +154,27 @@ def year_from_timeID(timeID):
 
 def raw_data_dir(timeID, data_loc=None):
     """gives path to the raw data folder for a particular timeID, given location of data structure. Defaults to  default_raw_data_loc"""
-    
+
     if data_loc is None:
         data_loc = default_raw_data_loc
-    
+
+    print(data_loc, year_from_timeID(timeID), timeID)
     path = data_loc + '/' + year_from_timeID(timeID)+"/"+timeID
     return path
 
 def processed_data_dir(timeID, data_loc=None):
     """gives path to the analysis folders for a particular timeID, given location of data structure. Defaults to  default_processed_data_loc
     makes the directory if it doesn't exist"""
-    
+
     if data_loc is None:
         data_loc = default_processed_data_loc
-    
+
     path=data_loc + "/" + year_from_timeID(timeID)+"/"+timeID
     if not isdir(path):
         mkdir(path)
     return path
 
-    
+
 ## a python list where the keys are the number of a station and the values are the station name
 SId_to_Sname = [None]*209 #just to pre-initilize list, so syntax below is possible
 SId_to_Sname[1] = "CS001"
@@ -268,15 +272,15 @@ def odd_antName_to_even(odd_ant_name):
     odd_num = int(odd_ant_name)
     even_num = odd_num + 1
     return str( even_num ).zfill( 9 )
-    
+
 
 #### plotting utilities ####
 def set_axes_equal(ax):
     '''Make axes of 3D plot have equal scale so that spheres appear as spheres,
     cubes as cubes, etc..  This is one possible solution to Matplotlib's
     ax.set_aspect('equal') and ax.axis('equal') not working for 3D.
-    
-    
+
+
 
     Input
       ax: a matplotlib axis, e.g., as output from plt.gca().
@@ -301,9 +305,9 @@ def set_axes_equal(ax):
     ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
     ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
 
-    
+
 ### some math functions? ###
-    
+
 def normalize_angle_radians( angle_radians ):
     """For an angle in radians, return the equivalent angle that is garunteed be between -pi and pi"""
     while angle_radians > np.pi:
@@ -311,7 +315,3 @@ def normalize_angle_radians( angle_radians ):
     while angle_radians < -np.pi:
         angle_radians += 2.0*np.pi
     return angle_radians
-    
-    
-    
-    
